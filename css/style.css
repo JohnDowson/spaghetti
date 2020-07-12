@@ -10,24 +10,11 @@ html, body {
   display: flex;
   flex-flow: column;
   height: 100%;
-  margin-left: 240px;
-  margin-right: 10%;
+  margin: 0 10% 0 240px;
 }
 
 .box header {
   flex: 0 1 auto;
-}
-
-#cb:checked~.navbar {
-  height: 10%;
-}
-
-#cb+label:after {
-  content: " To Hide";
-}
-
-#cb:checked+label:after {
-  content: " To Show";
 }
 
 .navbar {
@@ -43,6 +30,15 @@ html, body {
   overflow-x: hidden;
 }
 
+.navbar:hover {
+  cursor: grab;
+}
+
+.navbar_item a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .box .content {
   text-indent: 20px;
   flex: 1 1 auto;
@@ -54,4 +50,17 @@ html, body {
   flex: 0 1 40px;
   font-size: smaller;
   color: darkgray;
+}
+
+.navbar .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: sticky;
+  z-index: 2;
+  display: block;
 }
