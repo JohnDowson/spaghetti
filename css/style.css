@@ -1,0 +1,57 @@
+html, body {
+  text-align: center;
+  height: 100%;
+  margin: 0;
+  background-color: #144228;
+  color: #fecc80;
+}
+
+.box {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  margin-left: 240px;
+  margin-right: 10%;
+}
+
+.box header {
+  flex: 0 1 auto;
+}
+
+#cb:checked~.navbar {
+  height: 10%;
+}
+
+#cb+label:after {
+  content: " To Hide";
+}
+
+#cb:checked+label:after {
+  content: " To Show";
+}
+
+.navbar {
+  transition: all 0.4s linear;
+  flex: 0 1 auto;
+  height: 100%;
+  width: 200px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #110704;
+  overflow-x: hidden;
+}
+
+.box .content {
+  text-indent: 20px;
+  flex: 1 1 auto;
+  text-align: justify;
+  text-justify: auto;
+}
+
+.box footer {
+  flex: 0 1 40px;
+  font-size: smaller;
+  color: darkgray;
+}

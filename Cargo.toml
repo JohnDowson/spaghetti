@@ -1,0 +1,15 @@
+[package]
+name = "spaghetti"
+version = "0.1.0"
+authors = ["John Dowson <dowson.john.pony@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = "0.4"
+maud = { version = "*", features = ["rocket"] }
+[dependencies.rocket_contrib]
+version = "0.4"
+default-features = false
+features = []
