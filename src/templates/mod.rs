@@ -5,8 +5,8 @@ pub fn page(page_title: &str, content: Markup) -> Markup {
     html! {
         div class="box" {
         (navbar(vec![
-            ("Github", "https://github.com/JohnDowson"),
-        ("Blog", "/posts/"),
+            ("Index", "/"),
+        ("Blog", "/posts/"),("Github", "https://github.com/JohnDowson"),
         ]))
         (header(page_title))
         (body(content))
@@ -16,8 +16,10 @@ pub fn page(page_title: &str, content: Markup) -> Markup {
 pub fn header(page_title: &str) -> Markup {
     html! {
         (DOCTYPE)
-        script src="/script.js" {}
-        link rel="stylesheet" type="text/css" href="/style.css" /
+        script src="/js/script.js" {}
+        script src="/js/highlight.pack.js" {}
+        link rel="stylesheet" type="text/css" href="/css/style.css" /
+        link rel="stylesheet" type="text/css" href="/css/srcery.css" /
         meta charset="utf-8";
         title { (page_title) }
         header id="header" {
@@ -41,7 +43,7 @@ pub fn footer() -> Markup {
 }
 pub fn navbar(items: Vec<(&str, &str)>) -> Markup {
     html! {
-        div class="navbar" onclick="navbarClick(this)" onmouseover="navbarHover()" {
+        div id="navbar" class="navbar" onmouseover="navbarHover()" {
             h2 {("hjvt::*")}
             @for (item, link_to) in items {
                 (navbar_item(item.into(), link_to.into()))
