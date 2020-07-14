@@ -8,6 +8,12 @@ pub enum BlogPostUpdate {
     Content(String),
     Title(String),
 }
+#[derive(Serialize, Queryable, Debug, Clone)]
+pub struct PostDescription {
+    pub id: i32,
+    pub created: String,
+    pub title: String,
+}
 #[table_name = "posts"]
 #[derive(Serialize, Queryable, Insertable, Debug, Clone)]
 pub struct BlogPost {
@@ -25,7 +31,7 @@ impl BlogPost {
             id: -1,
             created: String::default(),
             title: title.to_owned(),
-            body: body.to_owned(),
+            body: ammonia::clean_text(body),
             published: match publish {
                 true => 1,
                 false => 0,
@@ -34,18 +40,19 @@ impl BlogPost {
         }
     }
     pub fn get(id: i32, conn: &SqliteConnection) -> QueryResult<BlogPost> {
-        use schema::posts::dsl::{posts as all_posts, published};
-        all_posts
+        use schema::posts::dsl::{posts, published};
+        posts
             .filter(published.eq(1))
             .find(id)
             .first::<BlogPost>(conn)
     }
-    pub fn all(conn: &SqliteConnection) -> QueryResult<Vec<BlogPost>> {
-        use schema::posts::dsl::{id, posts as all_posts, published};
-        all_posts
+    pub fn all(conn: &SqliteConnection) -> QueryResult<Vec<PostDescription>> {
+        use schema::posts::dsl::{created, id, posts, published, title};
+        posts
             .filter(published.eq(1))
             .order(id.desc())
-            .load::<BlogPost>(conn)
+            .select((id, created, title))
+            .load::<PostDescription>(conn)
     }
     pub fn update(update: BlogPostUpdate) -> Result<(), &'static str> {
         match update {

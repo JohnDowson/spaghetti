@@ -5,7 +5,7 @@ use maud::{html, Markup};
 use rocket::response::status;
 #[get("/")]
 pub fn index() -> Markup {
-    page("Hello, world".into(), html! {p {(LOREM)}})
+    page("Hello, world".into(), maud::PreEscaped(LOREM.into()))
 }
 
 #[allow(dead_code)]
@@ -20,12 +20,22 @@ fn test_markdown() -> String {
     html::push_html(&mut html_output, parser);
     html_output
 }
+
+fn parse_markdown(markdown: &str) -> Markup {
+    use pulldown_cmark::{html, Options, Parser};
+    let options = Options::all();
+    let parser = Parser::new_ext(markdown, options);
+    let mut html_output = String::new();
+    html::push_html(&mut html_output, parser);
+    maud::PreEscaped(html_output)
+}
+
 #[get("/posts/<id>")]
 pub fn post(id: i32, conn: DbConn) -> Result<Markup, status::NotFound<String>> {
     match BlogPost::get(id, &conn) {
         Ok(post) => Ok(page(
             &format!("hjvt::blog::{}", post.title),
-            maud::PreEscaped(post.body),
+            parse_markdown(&post.body),
         )),
         Err(_) => Err(status::NotFound(format!("Post id:{} not found", id))),
     }
@@ -33,19 +43,16 @@ pub fn post(id: i32, conn: DbConn) -> Result<Markup, status::NotFound<String>> {
 #[get("/posts")]
 pub fn posts(conn: DbConn) -> Result<Markup, status::Custom<String>> {
     match BlogPost::all(&conn) {
-        Ok(blogs) => {
-            println!("{:?}", blogs);
-            Ok(page(
-                &"hjvt::blog",
-                html! {
-                    ul {
-                        @for post in blogs {
-                            li { div { a href=(format!("/posts/{}", post.id)) {(post.title)} br {(post.created)} }   }
-                        }
+        Ok(blogs) => Ok(page(
+            &"hjvt::blog",
+            html! {
+                ul {
+                    @for post in blogs {
+                        li { div { a href=(format!("/posts/{}", post.id)) {(post.title)} br {(post.created)} }   }
                     }
-                },
-            ))
-        }
+                }
+            },
+        )),
         Err(e) => Err(status::Custom(
             rocket::http::Status::raw(500),
             format!("Error retrieving posts: {:?}", e),
