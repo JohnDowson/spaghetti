@@ -2,13 +2,13 @@ use crate::models::BlogPost;
 use crate::templates::*;
 use crate::DbConn;
 use maud::{html, Markup};
-use rocket::response::content;
 use rocket::response::status::NotFound;
 #[get("/")]
 pub fn index() -> Markup {
     page("Hello, world".into(), html! {p {(LOREM)}})
 }
 
+#[allow(dead_code)]
 fn test_markdown() -> String {
     use pulldown_cmark::{html, Options, Parser};
     use std::fs;
@@ -24,8 +24,8 @@ fn test_markdown() -> String {
 pub fn post(id: i32, conn: DbConn) -> Result<Markup, NotFound<String>> {
     match BlogPost::get(id, &conn) {
         Ok(post) => Ok(page(
-            &format!("hjvt::blog::{}", post.title), // blog title goes here
-            maud::PreEscaped(post.body),            // blog body goes here
+            &format!("hjvt::blog::{}", post.title),
+            maud::PreEscaped(post.body),
         )),
         Err(_) => Err(NotFound(format!("Post id:{} not found", id))),
     }

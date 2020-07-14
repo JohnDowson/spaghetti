@@ -3,32 +3,43 @@ pub const LOREM: &str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit
 
 pub fn page(page_title: &str, content: Markup) -> Markup {
     html! {
+        (html_head(page_title))
         div class="box" {
         (navbar(vec![
             ("Index", "/"),
         ("Blog", "/posts/"),("Github", "https://github.com/JohnDowson"),
         ]))
-        (header(page_title))
-        (body(content))
+        (body(content, page_title))
         (footer())}
     }
 }
-pub fn header(page_title: &str) -> Markup {
+pub fn html_head(page_title: &str) -> Markup {
     html! {
         (DOCTYPE)
-        script src="/js/script.js" {}
-        script src="/js/highlight.pack.js" {}
-        link rel="stylesheet" type="text/css" href="/css/style.css" /
-        link rel="stylesheet" type="text/css" href="/css/srcery.css" /
+        // Favicon magic
+        link rel="apple-touch-icon" sizes="120x120" href="/static/apple-touch-icon.png" {}
+        link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png" {}
+        link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png" {}
+        link rel="manifest" href="/static/site.webmanifest" {}
+        link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#007f46" {}
+        link rel="shortcut icon" href="/static/favicon.ico" {}
+        meta name="msapplication-TileColor" content="#da532c" {}
+        meta name="msapplication-config" content="/static/browserconfig.xml" {}
+        meta name="theme-color" content="#007f46" {}
+        // Favicon magic
         meta charset="utf-8";
         title { (page_title) }
+        link rel="stylesheet" type="text/css" href="/static/css/style.css" ;
+        link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/srcery.min.css" ;
+        script src="/static/js/script.js" {}
+        script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" {}
+    }
+}
+pub fn body(content: Markup, page_title: &str) -> Markup {
+    html! {
         header id="header" {
             h1 { (page_title) }
         }
-    }
-}
-pub fn body(content: Markup) -> Markup {
-    html! {
         div class="content" {
             (content)
         }

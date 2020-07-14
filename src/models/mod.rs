@@ -1,12 +1,10 @@
 #![allow(dead_code)]
-use crate::DbConn;
 mod schema;
 use diesel::{self, prelude::*, result::QueryResult};
 use schema::posts;
-use schema::posts::dsl::{id as post_id, posts as all_posts, published};
 ///placeholder
 struct Time;
-enum Update {
+pub enum BlogPostUpdate {
     Content(String),
     Title(String),
 }
@@ -22,21 +20,29 @@ pub struct BlogPost {
 }
 impl BlogPost {
     pub fn get(id: i32, conn: &SqliteConnection) -> QueryResult<BlogPost> {
+        use schema::posts::dsl::{posts as all_posts, published};
         all_posts
             .filter(published.eq(1))
             .find(id)
             .first::<BlogPost>(conn)
     }
-    fn update(update: Update) -> Result<(), &'static str> {
+    pub fn update(update: BlogPostUpdate) -> Result<(), &'static str> {
         match update {
-            Update::Content(_c) => {
+            BlogPostUpdate::Content(_c) => {
                 /* update post body */
                 Ok(())
             }
-            Update::Title(_t) => {
+            BlogPostUpdate::Title(_t) => {
                 /* update post title */
                 Ok(())
             }
+        }
+    }
+    pub fn commit(&self, conn: &SqliteConnection) -> Result<usize, String> {
+        use schema::posts::dsl::posts;
+        match diesel::insert_into(posts).values(self).execute(conn) {
+            Ok(id) => Ok(id),
+            Err(e) => Err(format!("{:?}", e)),
         }
     }
 }
