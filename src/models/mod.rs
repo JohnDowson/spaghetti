@@ -31,7 +31,7 @@ impl BlogPost {
             id: -1,
             created: String::default(),
             title: title.to_owned(),
-            body: ammonia::clean_text(body),
+            body: ammonia::clean(body),
             published: match publish {
                 true => 1,
                 false => 0,

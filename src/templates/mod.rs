@@ -1,6 +1,58 @@
 use maud::{html, Markup, DOCTYPE};
 pub const LOREM: &str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
+pub fn post_editor() -> Markup {
+    html! {
+        header id="header" {
+            form style="text-align: center;" {
+            input style="
+                color: #fecc80;
+                border-style: inset;
+                border-width: 2px;
+                font-style: bold;
+                font-size: 2em;
+                font-family: 'Inconsolata', monospace;
+                font-weight: 500;
+                background:none;
+                vertical-align: text-bottom;"
+                type="text" id="post_title";
+            button style="
+                position: relative;
+                box-sizing:border-box;
+                background-color: #528623;
+                border: none;
+                color: #fdc168;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                vertical-align: text-bottom;
+                margin-top: 10px;
+                margin-right: 30px;
+                margin-bottom: 2px;
+                padding-top: 10px;
+                padding-right: 10px;
+                padding-bottom: 10px;
+                padding-left: 10px;
+                cursor: pointer;"
+                type="button" onclick="alert('Hello World!')" {"Submit"}}
+        }
+        div class="content" {
+            textarea style="
+            box-sizing:border-box;
+            width:100%;
+            height:100%;
+            resize:none;
+            color: #fecc80;
+            font-weight: 350;
+            font-family: 'Josefin Sans', sans-serif;
+            font-size: 13pt;
+            background:none"
+            id="post_body" {}
+        }
+    }
+}
+
 pub fn page(page_title: &str, content: Markup) -> Markup {
     html! {
         (html_head(page_title))

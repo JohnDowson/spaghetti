@@ -1,4 +1,5 @@
-CREATE TABLE posts (
+-- Your SQL goes here
+CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     title VARCHAR NOT NULL,
@@ -6,5 +7,3 @@ CREATE TABLE posts (
     published INTEGER NOT NULL DEFAULT 0,
     views INTEGER NOT NULL DEFAULT 0
 );
-INSERT INTO posts (title, body, published)
-VALUES('Hello, world!', 'Hello from the database', 1);

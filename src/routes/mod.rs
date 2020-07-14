@@ -2,7 +2,7 @@ use crate::models::BlogPost;
 use crate::templates::*;
 use crate::DbConn;
 use maud::{html, Markup};
-use rocket::response::status;
+use rocket::response::{status, Redirect};
 #[get("/")]
 pub fn index() -> Markup {
     page("Hello, world".into(), maud::PreEscaped(LOREM.into()))
@@ -18,7 +18,7 @@ fn test_markdown() -> String {
     let parser = Parser::new_ext(&markdown_input, options);
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
-    html_output
+    markdown_input
 }
 
 fn parse_markdown(markdown: &str) -> Markup {
@@ -60,8 +60,12 @@ pub fn posts(conn: DbConn) -> Result<Markup, status::Custom<String>> {
     }
 }
 #[get("/posts/new")]
-pub fn new(conn: DbConn) -> Result<Markup, status::Custom<String>> {
-    let nb = BlogPost::new("Hello2", "Body2", true);
+pub fn new() -> Markup {
+    page(&format!("hjvt::blog::new"), post_editor())
+}
+#[get("/posts/test_insert")]
+pub fn insert_test(conn: DbConn) -> Result<Markup, status::Custom<String>> {
+    let nb = BlogPost::new("Hello2", &test_markdown(), true);
     match nb.commit(&conn) {
         Ok(id) => Ok(page(
             &"hjvt::blog",

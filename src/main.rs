@@ -25,7 +25,13 @@ fn main() {
         .mount("/static", StaticFiles::from("./static"))
         .mount(
             "/",
-            routes![routes::index, routes::posts, routes::post, routes::new],
+            routes![
+                routes::index,
+                routes::posts,
+                routes::post,
+                routes::new,
+                routes::insert_test
+            ],
         )
         .launch();
 }
