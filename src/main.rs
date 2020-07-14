@@ -23,6 +23,9 @@ fn main() {
         .attach(TimeRequests)
         .attach(DbConn::fairing())
         .mount("/static", StaticFiles::from("./static"))
-        .mount("/", routes![routes::index, routes::posts, routes::post])
+        .mount(
+            "/",
+            routes![routes::index, routes::posts, routes::post, routes::new],
+        )
         .launch();
 }

@@ -18,13 +18,34 @@ pub struct BlogPost {
     pub published: i32,
     pub views: i32,
 }
+
 impl BlogPost {
+    pub fn new(title: &str, body: &str, publish: bool) -> BlogPost {
+        BlogPost {
+            id: -1,
+            created: String::default(),
+            title: title.to_owned(),
+            body: body.to_owned(),
+            published: match publish {
+                true => 1,
+                false => 0,
+            },
+            views: 0,
+        }
+    }
     pub fn get(id: i32, conn: &SqliteConnection) -> QueryResult<BlogPost> {
         use schema::posts::dsl::{posts as all_posts, published};
         all_posts
             .filter(published.eq(1))
             .find(id)
             .first::<BlogPost>(conn)
+    }
+    pub fn all(conn: &SqliteConnection) -> QueryResult<Vec<BlogPost>> {
+        use schema::posts::dsl::{id, posts as all_posts, published};
+        all_posts
+            .filter(published.eq(1))
+            .order(id.desc())
+            .load::<BlogPost>(conn)
     }
     pub fn update(update: BlogPostUpdate) -> Result<(), &'static str> {
         match update {
@@ -38,10 +59,26 @@ impl BlogPost {
             }
         }
     }
-    pub fn commit(&self, conn: &SqliteConnection) -> Result<usize, String> {
-        use schema::posts::dsl::posts;
-        match diesel::insert_into(posts).values(self).execute(conn) {
-            Ok(id) => Ok(id),
+    pub fn commit(&self, conn: &SqliteConnection) -> Result<i32, String> {
+        use schema::posts::dsl::*;
+        if self.id != -1 {
+            return Err(format!(
+                "You are trying to insert an existing post {}",
+                self.id
+            ));
+        }
+        match diesel::insert_into(posts)
+            .values((
+                body.eq(self.body.to_owned()),
+                title.eq(self.title.to_owned()),
+                published.eq(self.published),
+            ))
+            .execute(conn)
+        {
+            Ok(_) => match posts.select(id).order(id.desc()).first(conn) {
+                Ok(post_id) => Ok(post_id),
+                Err(e) => Err(format!("{:?}", e)),
+            },
             Err(e) => Err(format!("{:?}", e)),
         }
     }

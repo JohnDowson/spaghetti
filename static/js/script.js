@@ -35,7 +35,7 @@ function navbar_set_state(hidden) {
     var content = Array.from(document.getElementsByClassName("box"));
     var navbar_children = Array.from(navbar.children);
     if (hidden === true) {
-        navbar.style.width = "10";
+        navbar.style.width = "10px";
         navbar_children.map((it) => { it.style.visibility = "hidden" });
         content.map((it) => { it.style.margin = '0 10% 0 10%' });
 

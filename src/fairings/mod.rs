@@ -22,7 +22,8 @@ impl Fairing for TimeRequests {
         match req.local_cache(|| RequestTimer(None)).0 {
             Some(t1) => {
                 let dt = t1.elapsed();
-                println!("Request to {} took: {}ms", req.uri().path(), dt.as_millis())
+                let dt_string = format!("{}.{}ms", dt.as_millis(), dt.as_micros());
+                println!("Request to {} took: {}", req.uri().path(), dt_string)
             }
             None => (),
         }
