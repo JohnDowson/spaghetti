@@ -1,7 +1,7 @@
 pub mod admin;
 pub mod public;
 use maud::{html, Markup};
-use rocket::{response::status, Request};
+use rocket::{http::Status, response::status, Request};
 
 use crate::templates::page;
 
@@ -22,4 +22,17 @@ pub fn not_found_catcher(req: &Request<'_>) -> status::NotFound<Markup> {
             h3 {(format!("{} not found", req.uri()))}
         },
     ))
+}
+
+#[catch(500)]
+pub fn internal_error_catcher(_req: &Request<'_>) -> status::Custom<Markup> {
+    status::Custom(
+        Status::InternalServerError,
+        page(
+            "500",
+            html! {
+                h3 {"Internal Server Error"}
+            },
+        ),
+    )
 }

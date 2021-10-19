@@ -34,6 +34,9 @@ async fn rocket() -> rocket::Rocket<rocket::Build> {
             "/static",
             rocket::fs::FileServer::from(rocket::fs::relative!("/static")),
         )
-        .register("/", catchers![routes::not_found_catcher])
+        .register(
+            "/",
+            catchers![routes::not_found_catcher, routes::internal_error_catcher],
+        )
         .manage(pool)
 }
