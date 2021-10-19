@@ -1,2 +1,2 @@
-[global.databases.sqlite_database]
-url = "db/dev.sqlite3"
+[default]
+secret_key = "abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde1234"

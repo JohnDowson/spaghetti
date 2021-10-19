@@ -3,53 +3,12 @@ pub const LOREM: &str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit
 
 pub fn post_editor() -> Markup {
     html! {
-        header id="header" {
-            form style="text-align: center;" {
-            input style="
-                color: #fecc80;
-                border-style: inset;
-                border-width: 2px;
-                font-style: bold;
-                font-size: 2em;
-                font-family: 'Inconsolata', monospace;
-                font-weight: 500;
-                background:none;
-                vertical-align: text-bottom;"
-                type="text" id="post_title";
-            button style="
-                position: relative;
-                box-sizing:border-box;
-                background-color: #528623;
-                border: none;
-                color: #fdc168;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 16px;
-                vertical-align: text-bottom;
-                margin-top: 10px;
-                margin-right: 30px;
-                margin-bottom: 2px;
-                padding-top: 10px;
-                padding-right: 10px;
-                padding-bottom: 10px;
-                padding-left: 10px;
-                cursor: pointer;"
-                type="button" onclick="alert('Hello World!')" {"Submit"}}
+        form action="/posts/submit" method="post" id="post_form" {
+            "Title:";
+            input type="text" name="title";
+            input type="submit";
         }
-        div class="content" {
-            textarea style="
-            box-sizing:border-box;
-            width:100%;
-            height:100%;
-            resize:none;
-            color: #fecc80;
-            font-weight: 350;
-            font-family: 'Josefin Sans', sans-serif;
-            font-size: 13pt;
-            background:none"
-            id="post_body" {}
-        }
+        textarea name="body" form="post_form" {};
     }
 }
 
@@ -58,8 +17,9 @@ pub fn page(page_title: &str, content: Markup) -> Markup {
         (html_head(page_title))
         div class="box" {
         (navbar(vec![
-            ("Index", "/"),
-        ("Blog", "/posts/"),("Github", "https://github.com/JohnDowson"),
+            ("About", "/"),
+            ("Blog", "/posts/"),
+            ("Github", "https://github.com/JohnDowson"),
         ]))
         (body(content, page_title))
         (footer())}
@@ -69,6 +29,7 @@ pub fn html_head(page_title: &str) -> Markup {
     html! {
         (DOCTYPE)
         // Favicon magic
+        link rel="icon" href="/static/favicon.ico" type="image/x-icon";
         link rel="apple-touch-icon" sizes="120x120" href="/static/apple-touch-icon.png" {}
         link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png" {}
         link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png" {}

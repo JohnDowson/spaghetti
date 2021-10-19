@@ -47,6 +47,16 @@ function navbar_set_state(hidden) {
     }
 }
 
+function http_delete(uri) {
+    fetch(uri, { method: 'DELETE' })
+    location.reload()
+}
+
+function http_post(uri) {
+    fetch(uri, { method: 'POST' })
+    location.reload()
+}
+
 function navbarHover() {
     var tooltip = document.getElementsByClassName("tooltiptext")[0];
     tooltip.style.visibility = "visible";
