@@ -2,11 +2,11 @@ use std::error::Error;
 
 use chrono::NaiveDateTime;
 use rocket::form::FromForm;
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 #[derive(Debug)]
 pub struct PostDescription {
-    pub id: i64,
+    pub id: i32,
     pub created_at: NaiveDateTime,
     pub title: String,
     pub published: bool,
@@ -14,12 +14,12 @@ pub struct PostDescription {
 
 #[derive(Debug)]
 pub struct BlogPost {
-    pub id: i64,
+    pub id: i32,
     pub created_at: NaiveDateTime,
     pub title: String,
     pub body: String,
     pub published: bool,
-    pub views: i64,
+    pub views: i32,
 }
 
 #[derive(Debug, FromForm)]
@@ -45,28 +45,26 @@ impl BlogPost {
     }
 
     pub async fn get(
-        id: i64,
+        id: i32,
         published: bool,
-        pool: &SqlitePool,
+        pool: &PgPool,
     ) -> Result<BlogPost, Box<dyn std::error::Error>> {
         Ok(if published {
             sqlx::query_as!(
                 BlogPost,
-                r#"SELECT * FROM posts WHERE id = ?1 AND published = true"#,
+                r#"SELECT * FROM posts WHERE id = $1 AND published = true"#,
                 id
             )
             .fetch_one(pool)
             .await?
         } else {
-            sqlx::query_as!(BlogPost, r#"SELECT * FROM posts WHERE id = ?1"#, id)
+            sqlx::query_as!(BlogPost, r#"SELECT * FROM posts WHERE id = $1"#, id)
                 .fetch_one(pool)
                 .await?
         })
     }
 
-    pub async fn all(
-        pool: &SqlitePool,
-    ) -> Result<Vec<PostDescription>, Box<dyn std::error::Error>> {
+    pub async fn all(pool: &PgPool) -> Result<Vec<PostDescription>, Box<dyn std::error::Error>> {
         Ok(sqlx::query_as!(
             PostDescription,
             r#"
@@ -79,7 +77,7 @@ impl BlogPost {
     }
 
     pub async fn all_published(
-        pool: &SqlitePool,
+        pool: &PgPool,
     ) -> Result<Vec<PostDescription>, Box<dyn std::error::Error>> {
         Ok(sqlx::query_as!(
             PostDescription,
@@ -93,15 +91,15 @@ impl BlogPost {
         .await?)
     }
 
-    pub fn _update(_update: BlogPost, _pool: &SqlitePool) -> Result<(), &'static str> {
+    pub fn _update(_update: BlogPost, _pool: &PgPool) -> Result<(), &'static str> {
         todo!()
     }
 
-    pub async fn delete(id: i64, pool: &SqlitePool) -> Result<(), Box<dyn Error>> {
+    pub async fn delete(id: i32, pool: &PgPool) -> Result<(), Box<dyn Error>> {
         sqlx::query!(
             r#"
 DELETE FROM posts
-WHERE id = ?1
+WHERE id = $1
             "#,
             id
         )
@@ -110,12 +108,12 @@ WHERE id = ?1
         Ok(())
     }
 
-    pub async fn publish(id: i64, pool: &SqlitePool) -> Result<(), Box<dyn Error>> {
+    pub async fn publish(id: i32, pool: &PgPool) -> Result<(), Box<dyn Error>> {
         sqlx::query!(
             r#"
 UPDATE posts
 SET published = NOT published
-WHERE id = ?1
+WHERE id = $1
             "#,
             id
         )
@@ -124,18 +122,19 @@ WHERE id = ?1
         Ok(())
     }
 
-    pub async fn commit(&self, pool: &SqlitePool) -> Result<i64, Box<dyn Error>> {
+    pub async fn commit(&self, pool: &PgPool) -> Result<i32, Box<dyn Error>> {
         Ok(sqlx::query!(
             r#"
 INSERT INTO posts(title, body, published)
-VALUES ( ?1, ?2, ?3)
+VALUES ( $1, $2, $3)
+RETURNING id
             "#,
             self.title,
             self.body,
             self.published
         )
-        .execute(pool)
+        .fetch_one(pool)
         .await?
-        .last_insert_rowid())
+        .id)
     }
 }

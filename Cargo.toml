@@ -10,7 +10,8 @@ edition = "2018"
 rocket = {version = "0.5.0-rc.1", features=["secrets"]}
 pulldown-cmark = "0.8"
 ammonia = "3.1"
-sqlx = { version = "0.5", features = ["sqlite", "macros", "runtime-tokio-native-tls", "chrono"] }
+sqlx = { version = "0.5", features = ["postgres", "migrate", "macros", "runtime-tokio-rustls", "chrono"] }
 tokio = { version = "1.12", features = ["full"] }
-maud = { path = "../maud/maud", features = ["rocket"] }
+maud = { path = "./maud/maud", features = ["rocket"] }
 chrono = "0.4.19"
+log = "0.4.14"

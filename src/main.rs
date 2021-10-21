@@ -1,18 +1,26 @@
 mod models;
 mod routes;
 mod templates;
-use std::env::var;
 #[macro_use]
 extern crate rocket;
 
 #[launch]
 async fn rocket() -> rocket::Rocket<rocket::Build> {
-    let db_uri = var("DATABASE_URL").unwrap_or_else(|_| "sqlite://db/dev.sqlite3".to_string());
-    let pool = sqlx::SqlitePool::connect(&db_uri)
+    let rocket = rocket::build();
+    let db_uri: String = rocket
+        .figment()
+        .extract_inner("db")
+        .expect("Please configure ROCKET_DB");
+    log::info!("Using db: {}", db_uri);
+    let pool = sqlx::PgPool::connect(&db_uri)
         .await
         .expect("Couldn't create DB pool");
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .expect("Couldn't run migrations");
 
-    rocket::build()
+    rocket
         .mount(
             "/",
             rocket::routes![
@@ -30,10 +38,7 @@ async fn rocket() -> rocket::Rocket<rocket::Build> {
                 routes::admin::post,
             ],
         )
-        .mount(
-            "/static",
-            rocket::fs::FileServer::from(rocket::fs::relative!("/static")),
-        )
+        .mount("/static", rocket::fs::FileServer::from("./static"))
         .register(
             "/",
             catchers![routes::not_found_catcher, routes::internal_error_catcher],

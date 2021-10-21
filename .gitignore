@@ -1,3 +1,3 @@
 /target
 test.md
-db/dev.sqlite3
+db/*

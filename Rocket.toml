@@ -1,2 +1,6 @@
 [default]
+address = "127.0.0.1"
+port = 8000
+[debug]
+db = "postgres://spaghetti@localhost/spaghetti-dev"
 secret_key = "abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde1234"

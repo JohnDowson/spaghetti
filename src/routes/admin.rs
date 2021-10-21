@@ -12,7 +12,7 @@ use rocket::response::Redirect;
 use rocket::Request;
 
 use rocket::{form::Form, http::Status, State};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 #[derive(Debug)]
 pub struct Admin {}
@@ -34,7 +34,7 @@ impl<'r> FromRequest<'r> for Admin {
 }
 
 #[get("/posts/<id>")]
-pub async fn post(id: i64, _admin: Admin, pool: &State<SqlitePool>) -> Option<Markup> {
+pub async fn post(id: i32, _admin: Admin, pool: &State<PgPool>) -> Option<Markup> {
     match BlogPost::get(id, false, &*pool).await {
         Ok(post) => Some(page(
             &format!("hjvt::blog::{}", post.title),
@@ -48,7 +48,7 @@ pub async fn post(id: i64, _admin: Admin, pool: &State<SqlitePool>) -> Option<Ma
 pub async fn submit(
     blog: Form<BlogForm>,
     _admin: Admin,
-    pool: &State<SqlitePool>,
+    pool: &State<PgPool>,
 ) -> Result<Redirect, (Status, Markup)> {
     let nb = BlogPost::from_form(blog.into_inner(), false);
     match nb.commit(&*pool).await {
@@ -69,9 +69,9 @@ pub async fn new(_admin: Admin) -> Markup {
 
 #[delete("/posts/<id>")]
 pub async fn delete_post(
-    id: i64,
+    id: i32,
     _admin: Admin,
-    pool: &State<SqlitePool>,
+    pool: &State<PgPool>,
 ) -> Result<Redirect, (Status, Markup)> {
     BlogPost::delete(id, pool)
         .await
@@ -80,7 +80,7 @@ pub async fn delete_post(
 }
 
 #[post("/posts/<id>/publish")]
-pub async fn publish(id: i64, _admin: Admin, pool: &State<SqlitePool>) -> Result<Status, Status> {
+pub async fn publish(id: i32, _admin: Admin, pool: &State<PgPool>) -> Result<Status, Status> {
     BlogPost::publish(id, pool)
         .await
         .map(|_| Status::Ok)
@@ -88,7 +88,7 @@ pub async fn publish(id: i64, _admin: Admin, pool: &State<SqlitePool>) -> Result
 }
 
 #[get("/posts", rank = 1)]
-pub async fn posts(_admin: Admin, pool: &State<SqlitePool>) -> Result<Markup, (Status, String)> {
+pub async fn posts(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, (Status, String)> {
     match BlogPost::all(&*pool).await {
         Ok(blogs) => Ok(page(
             "hjvt::blog",

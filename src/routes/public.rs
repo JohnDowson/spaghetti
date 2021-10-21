@@ -4,7 +4,7 @@ use maud::{html, Markup};
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
 use rocket::{form::Form, http::Status, State};
-use sqlx::SqlitePool;
+use sqlx::PgPool;
 
 #[get("/")]
 pub fn index() -> Markup {
@@ -12,7 +12,7 @@ pub fn index() -> Markup {
 }
 
 #[get("/posts/<id>", rank = 2)]
-pub async fn post(id: i64, pool: &State<SqlitePool>) -> Option<Markup> {
+pub async fn post(id: i32, pool: &State<PgPool>) -> Option<Markup> {
     match BlogPost::get(id, true, &*pool).await {
         Ok(post) => Some(page(
             &format!("hjvt::blog::{}", post.title),
@@ -23,7 +23,7 @@ pub async fn post(id: i64, pool: &State<SqlitePool>) -> Option<Markup> {
 }
 
 #[get("/posts", rank = 2)]
-pub async fn posts(pool: &State<SqlitePool>) -> Result<Markup, (Status, String)> {
+pub async fn posts(pool: &State<PgPool>) -> Result<Markup, (Status, String)> {
     match BlogPost::all_published(&*pool).await {
         Ok(blogs) => Ok(page(
             "hjvt::blog",
