@@ -15,7 +15,7 @@ use rocket::{form::Form, http::Status, State};
 use sqlx::PgPool;
 
 #[derive(Debug)]
-pub struct Admin {}
+pub struct Admin;
 
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for Admin {
@@ -25,7 +25,7 @@ impl<'r> FromRequest<'r> for Admin {
         let valid = |k: &Cookie| k.value() == "valid";
         match req.cookies().get_private("session") {
             None => Outcome::Forward(()),
-            Some(key) if valid(&key) => Outcome::Success(Admin {}),
+            Some(key) if valid(&key) => Outcome::Success(Admin),
             Some(_) => {
                 Outcome::Failure((Status::BadRequest, Box::<dyn Error>::from("Bad API key")))
             }
