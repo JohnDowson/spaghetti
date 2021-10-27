@@ -1,3 +1,4 @@
+mod fairings;
 mod models;
 mod routes;
 mod templates;
@@ -7,20 +8,9 @@ extern crate rocket;
 #[launch]
 async fn rocket() -> rocket::Rocket<rocket::Build> {
     let rocket = rocket::build();
-    let db_uri: String = rocket
-        .figment()
-        .extract_inner("db")
-        .expect("Please configure ROCKET_DB");
-    log::info!("Using db: {}", db_uri);
-    let pool = sqlx::PgPool::connect(&db_uri)
-        .await
-        .expect("Couldn't create DB pool");
-    sqlx::migrate!("./migrations")
-        .run(&pool)
-        .await
-        .expect("Couldn't run migrations");
 
     rocket
+        .attach(fairings::DbManager)
         .mount(
             "/",
             rocket::routes![
@@ -43,5 +33,4 @@ async fn rocket() -> rocket::Rocket<rocket::Build> {
             "/",
             catchers![routes::not_found_catcher, routes::internal_error_catcher],
         )
-        .manage(pool)
 }
