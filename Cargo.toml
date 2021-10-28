@@ -15,3 +15,8 @@ tokio = { version = "1.12", features = ["full"] }
 maud = { path = "./maud/maud", features = ["rocket"] }
 chrono = "0.4.19"
 log = "0.4.14"
+jwt = "0.15.0"
+hmac = "0.11.0"
+serde = "1.0.130"
+sha2 = "0.9.8"
+bcrypt = "0.10.1"
