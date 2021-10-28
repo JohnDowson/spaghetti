@@ -34,6 +34,7 @@ async fn rocket() -> rocket::Rocket<rocket::Build> {
                 routes::admin::posts,
                 routes::admin::submit,
                 routes::admin::new,
+                routes::admin::logout,
             ],
         )
         .mount("/static", rocket::fs::FileServer::from("./static"))

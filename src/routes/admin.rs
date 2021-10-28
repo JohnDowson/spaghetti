@@ -39,6 +39,18 @@ impl<'r> FromRequest<'r> for Admin {
         }
     }
 }
+#[derive(Debug)]
+pub struct RevokeSession;
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for RevokeSession {
+    type Error = ();
+
+    async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        req.cookies().remove_private(Cookie::named("session"));
+        Outcome::Success(RevokeSession)
+    }
+}
 
 #[get("/")]
 pub async fn index(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
@@ -46,6 +58,11 @@ pub async fn index(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status
         .await
         .map(|about| admin_page("hjvt::about", super::parse_markdown(&about)))
         .map_err(|e| error(e))
+}
+
+#[get("/logout")]
+pub async fn logout(_revoke: RevokeSession) -> Redirect {
+    Redirect::to("/")
 }
 
 #[get("/posts/<id>")]

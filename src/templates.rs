@@ -32,6 +32,7 @@ pub fn admin_page(page_title: &str, content: Markup) -> Markup {
             ("About", "/"),
             ("Blog", "/posts/"),
             ("New", "/posts/new"),
+            ("Logout","/logout"),
             ("Github", "https://github.com/JohnDowson")
         ]))
         (body(content, page_title))
