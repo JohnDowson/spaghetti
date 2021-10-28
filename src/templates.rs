@@ -1,7 +1,7 @@
 use maud::{html, Markup, DOCTYPE};
-pub fn post_editor() -> Markup {
+pub fn post_editor(form_action: &str) -> Markup {
     html! {
-        form action="/posts/submit" method="post" id="post_form" {
+        form action=(form_action) method="post" id="post_form" {
             "Title:";
             input type="text" name="title";
             input type="submit";

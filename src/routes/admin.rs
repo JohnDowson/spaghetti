@@ -1,5 +1,5 @@
 use super::public;
-use crate::models::{about, BlogForm, BlogPost};
+use crate::models::{about, set_about, BlogForm, BlogPost};
 use crate::routes::error;
 use crate::{templates::*, Secrets, Session};
 
@@ -91,7 +91,24 @@ pub async fn submit(
 
 #[get("/posts/new")]
 pub async fn new(_admin: Admin) -> Markup {
-    admin_page("hjvt::blog::new", post_editor())
+    admin_page("hjvt::blog::new", post_editor("/posts/submit"))
+}
+
+#[post("/admin/info", data = "<info>")]
+pub async fn submit_info(
+    info: Form<BlogForm>,
+    _admin: Admin,
+    pool: &State<PgPool>,
+) -> Result<Redirect, Status> {
+    match set_about(&info.body, &info.title, &*pool).await {
+        Ok(_) => Ok(Redirect::to("/admin/info/new")),
+        Err(e) => Err(error(e)),
+    }
+}
+
+#[get("/admin/info/new")]
+pub async fn new_info(_admin: Admin) -> Markup {
+    admin_page("THE_BACKROOMS::boo", post_editor("/admin/info"))
 }
 
 #[delete("/posts/<id>")]

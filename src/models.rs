@@ -36,6 +36,17 @@ pub async fn about(pool: &PgPool) -> Result<String, Box<dyn Error>> {
         .map_err(|e| e.into())
 }
 
+pub async fn set_about(entry: &str, name: &str, pool: &PgPool) -> Result<(), Box<dyn Error>> {
+    sqlx::query!(
+        "INSERT INTO info (entry, name) VALUES ($1, $2)",
+        entry,
+        name
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 impl BlogPost {
     pub fn from_form(form: BlogForm, publish: bool) -> BlogPost {
         BlogPost::new(form.title, form.body, publish)
