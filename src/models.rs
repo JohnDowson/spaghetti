@@ -28,6 +28,14 @@ pub struct BlogForm {
     pub body: String,
 }
 
+pub async fn about(pool: &PgPool) -> Result<String, Box<dyn Error>> {
+    sqlx::query!("SELECT entry FROM info WHERE name = 'about'")
+        .fetch_one(pool)
+        .await
+        .map(|r| r.entry)
+        .map_err(|e| e.into())
+}
+
 impl BlogPost {
     pub fn from_form(form: BlogForm, publish: bool) -> BlogPost {
         BlogPost::new(form.title, form.body, publish)

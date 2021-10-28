@@ -1,14 +1,20 @@
-use crate::models::BlogPost;
-use crate::templates::*;
+use crate::models::{about, BlogPost};
+use crate::routes::error;
+use crate::{templates::*, Secrets, Session};
+use chrono::{Duration, Utc};
+use jwt::SignWithKey;
 use maud::{html, Markup};
 use rocket::http::{Cookie, CookieJar};
 use rocket::response::Redirect;
-use rocket::{form::Form, http::Status, State};
+use rocket::{form::Form, get, http::Status, post, uri, FromForm, State};
 use sqlx::PgPool;
 
-#[get("/")]
-pub fn index() -> Markup {
-    page("hjvt::about", maud::PreEscaped(LOREM.into()))
+#[get("/", rank = 2)]
+pub async fn index(pool: &State<PgPool>) -> Result<Markup, Status> {
+    about(&*pool)
+        .await
+        .map(|about| admin_page("hjvt::about", super::parse_markdown(&about)))
+        .map_err(|e| error(e))
 }
 
 #[get("/posts/<id>", rank = 2)]
@@ -23,23 +29,22 @@ pub async fn post(id: i32, pool: &State<PgPool>) -> Option<Markup> {
 }
 
 #[get("/posts", rank = 2)]
-pub async fn posts(pool: &State<PgPool>) -> Result<Markup, (Status, String)> {
+pub async fn posts(pool: &State<PgPool>) -> Result<Markup, Status> {
     match BlogPost::all_published(&*pool).await {
         Ok(blogs) => Ok(page(
             "hjvt::blog",
             html! {
+                table class="blogs" {
                 @for post in blogs {
-                    div {
-                        a href=(uri!(post(post.id))) {(post.title)} {" "(post.created_at)}
+                    tr {
+                        td { a href=(uri!(post(post.id))) {(post.title)}}
+                        td class="posted_at" {(post.created_at.format("%Y/%m/%d %H:%M"))}
                         br;
                     }
-                }
+                }}
             },
         )),
-        Err(e) => Err((
-            Status::InternalServerError,
-            format!("Error retrieving posts: {:?}", e),
-        )),
+        Err(e) => Err(error(e)),
     }
 }
 
@@ -56,12 +61,23 @@ pub fn login() -> Markup {
 }
 
 #[post("/login", data = "<login>")]
-pub fn login_post(login: Form<Login>, cookies: &CookieJar) -> Markup {
-    if &login.password == "Foobar" {
-        cookies.add_private(Cookie::new("session", "valid".to_string()));
-        page("Logged in", html! {})
+pub fn login_post(
+    login: Form<Login>,
+    cookies: &CookieJar,
+    secret: &State<Secrets>,
+) -> Result<Markup, Status> {
+    let now = Utc::now();
+    let claims = Session {
+        sub: String::from("Admin"),
+        iat: now.timestamp(),
+        exp: (now + Duration::weeks(1)).timestamp(),
+    };
+    let token_str = claims.sign_with_key(secret.secret_key()).unwrap();
+    if bcrypt::verify(&login.password, secret.admin_password()).map_err(|e| error(e.into()))? {
+        cookies.add_private(Cookie::new("session", token_str));
+        Ok(page("Logged in", html! {}))
     } else {
-        page("Gtfo", html! {})
+        Err(Status::Unauthorized)
     }
 }
 

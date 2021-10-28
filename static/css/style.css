@@ -6,6 +6,12 @@ html, body {
   background-color: #144228;
   color: #fecc80;
 }
+table.blogs td.posted_at {
+  text-align: right;
+}
+table.blogs {
+  width: 100%
+}
 
 .box {
   display: flex;

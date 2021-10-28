@@ -1,7 +1,7 @@
 pub mod admin;
 pub mod public;
 use maud::{html, Markup};
-use rocket::{http::Status, response::status, Request};
+use rocket::{catch, http::Status, response::status, Request};
 
 use crate::templates::page;
 
@@ -12,6 +12,11 @@ fn parse_markdown(markdown: &str) -> Markup {
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
     maud::PreEscaped(html_output)
+}
+
+fn error(e: Box<dyn std::error::Error>) -> Status {
+    log::error!("{}", e);
+    Status::InternalServerError
 }
 
 #[catch(404)]
@@ -35,4 +40,9 @@ pub fn internal_error_catcher(_req: &Request<'_>) -> status::Custom<Markup> {
             },
         ),
     )
+}
+
+#[catch(401)]
+pub fn unauthorized_catcher(_req: &Request<'_>) -> status::Custom<Markup> {
+    status::Custom(Status::Unauthorized, page("Gtfo", html! {}))
 }

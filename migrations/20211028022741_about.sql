@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS info (
+    entry TEXT NOT NULL,
+    name VARCHAR (64) NOT NULL
+);

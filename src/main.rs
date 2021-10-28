@@ -2,8 +2,14 @@ mod fairings;
 mod models;
 mod routes;
 mod templates;
-#[macro_use]
-extern crate rocket;
+pub use fairings::Secrets;
+use rocket::{catchers, launch, routes};
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
+pub struct Session {
+    pub sub: String,
+    pub iat: i64,
+    pub exp: i64,
+}
 
 #[launch]
 async fn rocket() -> rocket::Rocket<rocket::Build> {
@@ -11,26 +17,32 @@ async fn rocket() -> rocket::Rocket<rocket::Build> {
 
     rocket
         .attach(fairings::DbManager)
+        .attach(fairings::SecretManager)
         .mount(
             "/",
-            rocket::routes![
+            routes![
                 routes::public::index,
                 routes::public::posts,
-                routes::admin::posts,
                 routes::public::post,
-                routes::admin::submit,
-                routes::admin::new,
                 routes::public::new_redirect,
                 routes::public::login,
                 routes::public::login_post,
+                routes::admin::index,
                 routes::admin::delete_post,
                 routes::admin::publish,
                 routes::admin::post,
+                routes::admin::posts,
+                routes::admin::submit,
+                routes::admin::new,
             ],
         )
         .mount("/static", rocket::fs::FileServer::from("./static"))
         .register(
             "/",
-            catchers![routes::not_found_catcher, routes::internal_error_catcher],
+            catchers![
+                routes::not_found_catcher,
+                routes::internal_error_catcher,
+                routes::unauthorized_catcher
+            ],
         )
 }
