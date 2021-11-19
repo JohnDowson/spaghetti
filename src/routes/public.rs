@@ -1,4 +1,4 @@
-use crate::models::{about, BlogPost};
+use crate::models::{get_info, BlogPost};
 use crate::routes::error;
 use crate::{templates::*, Secrets, Session};
 use chrono::{Duration, Utc};
@@ -9,11 +9,19 @@ use rocket::response::Redirect;
 use rocket::{form::Form, get, http::Status, post, uri, FromForm, State};
 use sqlx::PgPool;
 
-#[get("/", rank = 2)]
+#[get("/about", rank = 2)]
 pub async fn index(pool: &State<PgPool>) -> Result<Markup, Status> {
-    about(&*pool)
+    get_info("about", &*pool)
         .await
-        .map(|about| admin_page("hjvt::about", super::parse_markdown(&about)))
+        .map(|about| page("hjvt::about", super::parse_markdown(&about)))
+        .map_err(|e| error(e))
+}
+
+#[get("/contacts", rank = 2)]
+pub async fn contacts(pool: &State<PgPool>) -> Result<Markup, Status> {
+    get_info("contacts", &*pool)
+        .await
+        .map(|about| page("hjvt::contacts", super::parse_markdown(&about)))
         .map_err(|e| error(e))
 }
 

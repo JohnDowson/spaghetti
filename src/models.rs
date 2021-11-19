@@ -28,18 +28,29 @@ pub struct BlogForm {
     pub body: String,
 }
 
-pub async fn about(pool: &PgPool) -> Result<String, Box<dyn Error>> {
-    sqlx::query!("SELECT entry FROM info WHERE name = 'about'")
+pub async fn get_info(entry: &str, pool: &PgPool) -> Result<String, Box<dyn Error>> {
+    sqlx::query!("SELECT entry FROM info WHERE name = $1", entry)
         .fetch_one(pool)
         .await
         .map(|r| r.entry)
         .map_err(|e| e.into())
 }
 
-pub async fn set_about(entry: &str, name: &str, pool: &PgPool) -> Result<(), Box<dyn Error>> {
+pub async fn list_info_kinds(pool: &PgPool) -> Result<Vec<String>, Box<dyn Error>> {
+    Ok(sqlx::query!("SELECT name FROM info")
+        .fetch_all(pool)
+        .await?
+        .into_iter()
+        .map(|r| r.name)
+        .collect())
+}
+
+pub async fn set_info(entry: &str, name: &str, pool: &PgPool) -> Result<(), Box<dyn Error>> {
     sqlx::query!(
-        "INSERT INTO info (entry, name) VALUES ($1, $2)",
-        entry,
+        "INSERT INTO info (entry, name) VALUES ($1, $2)
+        ON CONFLICT (name) DO
+        UPDATE SET entry = EXCLUDED.entry",
+        ammonia::clean(&entry),
         name
     )
     .execute(pool)

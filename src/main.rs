@@ -21,13 +21,16 @@ async fn rocket() -> rocket::Rocket<rocket::Build> {
         .mount(
             "/",
             routes![
+                routes::index,
                 routes::public::index,
+                routes::public::contacts,
                 routes::public::posts,
                 routes::public::post,
                 routes::public::new_redirect,
                 routes::public::login,
                 routes::public::login_post,
                 routes::admin::index,
+                routes::admin::contacts,
                 routes::admin::delete_post,
                 routes::admin::publish,
                 routes::admin::post,

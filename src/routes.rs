@@ -1,7 +1,12 @@
 pub mod admin;
 pub mod public;
 use maud::{html, Markup};
-use rocket::{catch, http::Status, response::status, Request};
+use rocket::{
+    catch, get,
+    http::Status,
+    response::{status, Redirect},
+    Request,
+};
 
 use crate::templates::page;
 
@@ -17,6 +22,11 @@ fn parse_markdown(markdown: &str) -> Markup {
 fn error(e: Box<dyn std::error::Error>) -> Status {
     log::error!("{}", e);
     Status::InternalServerError
+}
+
+#[get("/")]
+pub fn index() -> Redirect {
+    Redirect::to("/about")
 }
 
 #[catch(404)]

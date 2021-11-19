@@ -10,12 +10,29 @@ pub fn post_editor(form_action: &str) -> Markup {
     }
 }
 
+pub fn info_editor(infos: &[impl AsRef<str>]) -> Markup {
+    html! {
+        form action="/admin/info" method="post" id="post_form" {
+            label for="title" {"Info type"}
+            input type="text" id="title" name="title" list="titles";
+            datalist id="titles" {
+                @for info in infos {
+                    option value=(info) {(info)};
+                }
+            };
+            input type="submit";
+        }
+        textarea name="body" form="post_form" {};
+    }
+}
+
 pub fn page(page_title: &str, content: Markup) -> Markup {
     html! {
         (html_head(page_title))
         div class="box" {
         (navbar(&[
-            ("About", "/"),
+            ("About", "/about"),
+            ("Contacts", "/contacts"),
             ("Blog", "/posts/"),
             ("Github", "https://github.com/JohnDowson"),
         ]))
@@ -29,9 +46,11 @@ pub fn admin_page(page_title: &str, content: Markup) -> Markup {
         (html_head(page_title))
         div class="box" {
         (navbar(&[
-            ("About", "/"),
+            ("About", "/about"),
+            ("Contacts", "/contacts"),
             ("Blog", "/posts/"),
             ("New", "/posts/new"),
+            ("Edit info", "/admin/info/new"),
             ("Logout","/logout"),
             ("Github", "https://github.com/JohnDowson")
         ]))
@@ -76,7 +95,7 @@ pub fn body(content: Markup, page_title: &str) -> Markup {
 pub fn footer() -> Markup {
     html! {
         footer {
-            p { "2020, hjvt©" }
+            p { "2020, " a href="/contacts" {"hjvt©"} }
         }
     }
 }

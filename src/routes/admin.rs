@@ -1,5 +1,5 @@
 use super::public;
-use crate::models::{about, set_about, BlogForm, BlogPost};
+use crate::models::{get_info, list_info_kinds, set_info, BlogForm, BlogPost};
 use crate::routes::error;
 use crate::{templates::*, Secrets, Session};
 
@@ -52,11 +52,19 @@ impl<'r> FromRequest<'r> for RevokeSession {
     }
 }
 
-#[get("/")]
+#[get("/about")]
 pub async fn index(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
-    about(&*pool)
+    get_info("about", &*pool)
         .await
         .map(|about| admin_page("hjvt::about", super::parse_markdown(&about)))
+        .map_err(|e| error(e))
+}
+
+#[get("/contacts")]
+pub async fn contacts(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
+    get_info("contacts", &*pool)
+        .await
+        .map(|about| admin_page("hjvt::contacts", super::parse_markdown(&about)))
         .map_err(|e| error(e))
 }
 
@@ -100,15 +108,16 @@ pub async fn submit_info(
     _admin: Admin,
     pool: &State<PgPool>,
 ) -> Result<Redirect, Status> {
-    match set_about(&info.body, &info.title, &*pool).await {
+    match set_info(&info.body, &info.title, &*pool).await {
         Ok(_) => Ok(Redirect::to("/admin/info/new")),
         Err(e) => Err(error(e)),
     }
 }
 
 #[get("/admin/info/new")]
-pub async fn new_info(_admin: Admin) -> Markup {
-    admin_page("THE_BACKROOMS::boo", post_editor("/admin/info"))
+pub async fn new_info(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
+    let info_kinds = list_info_kinds(&*pool).await.map_err(error)?;
+    Ok(admin_page("THE_BACKROOMS::boo", info_editor(&info_kinds)))
 }
 
 #[delete("/posts/<id>")]
