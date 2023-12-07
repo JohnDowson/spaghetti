@@ -73,7 +73,7 @@ pub fn login_post(
     login: Form<Login>,
     cookies: &CookieJar,
     secret: &State<Secrets>,
-) -> Result<Markup, Status> {
+) -> Result<Redirect, Status> {
     let now = Utc::now();
     let claims = Session {
         sub: String::from("Admin"),
@@ -83,7 +83,7 @@ pub fn login_post(
     let token_str = claims.sign_with_key(secret.secret_key()).unwrap();
     if bcrypt::verify(&login.password, secret.admin_password()).map_err(|e| error(e.into()))? {
         cookies.add_private(Cookie::new("session", token_str));
-        Ok(page("Logged in", html! {}))
+        Ok(Redirect::to(uri!("/admin")))
     } else {
         Err(Status::Unauthorized)
     }

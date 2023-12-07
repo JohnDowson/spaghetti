@@ -73,8 +73,9 @@ pub fn admin_page(page_title: &str, content: Markup) -> Markup {
             ("Blog", "/posts/"),
             ("New", "/posts/new"),
             ("Edit info", "/admin/info/new"),
+            ("Github", "https://github.com/JohnDowson"),
+            ("Page hits","/admin/page_hits"),
             ("Logout","/logout"),
-            ("Github", "https://github.com/JohnDowson")
         ]))
         (body(content, page_title))
         (footer())}
