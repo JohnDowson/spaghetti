@@ -1,3 +1,5 @@
+use std::collections::{BTreeMap, HashMap};
+
 use maud::{html, Markup, DOCTYPE};
 pub fn post_editor(form_action: &str) -> Markup {
     html! {
@@ -7,6 +9,26 @@ pub fn post_editor(form_action: &str) -> Markup {
             input type="submit";
         }
         textarea name="body" form="post_form" {};
+    }
+}
+
+pub fn page_counts(page_counts: BTreeMap<i32, BTreeMap<String, i64>>) -> Markup {
+    html! {
+        table {
+            @for (hour, counts) in page_counts {
+                tr {
+                    td { (hour) }
+                    td {
+                        @for (page, count) in counts {
+                            tr {
+                                td { (page) }
+                                td { (count) }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

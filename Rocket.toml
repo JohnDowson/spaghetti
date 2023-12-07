@@ -4,3 +4,8 @@ port = 8000
 [debug]
 db = "postgres://spaghetti@localhost/spaghetti-dev"
 secret_key = "abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde1234"
+admin_password = "Foobar"
+[release]
+db = "postgres://spaghetti@localhost/spaghetti-dev"
+secret_key = "abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde1234"
+admin_password = "Foobar"

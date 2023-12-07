@@ -25,8 +25,8 @@ RUN cargo build --release
 
 # Build application
 COPY ./migrations ./migrations
-ENV DATABASE_URL=postgres://spaghetti@host.docker.internal/spaghetti-dev
+ENV DATABASE_URL=postgres://spaghetti@localhost/spaghetti-dev
 RUN rm src/*.rs
 COPY ./src ./src
 RUN rm ./target/release/deps/spaghetti*
-RUN cargo build --release
+RUN cargo build --verbose --release

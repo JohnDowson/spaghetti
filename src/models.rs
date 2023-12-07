@@ -66,7 +66,7 @@ impl BlogPost {
     pub fn new(title: String, body: String, publish: bool) -> BlogPost {
         BlogPost {
             id: -1,
-            created_at: NaiveDateTime::from_timestamp(0, 0),
+            created_at: NaiveDateTime::from_timestamp_opt(0, 0).unwrap(),
             title,
             body: ammonia::clean(&body),
             published: publish,

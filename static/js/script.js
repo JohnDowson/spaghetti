@@ -9,16 +9,24 @@ document.addEventListener('DOMContentLoaded', () => {
         hljs.highlightBlock(block);
     });
 })
-function pathname_from(href) {
-    var url = href.split("/");
-    return url[url.length - 2]
-}
+
+
+
 function highlight_current_category_in_navbar() {
+    function prefix(pathname) {
+        let i = 0;
+        while (pathname[i] && pathname[i] == location.pathname[i])
+            i++;
+        return i;
+    }
     var navbar_items = Array.from(document.getElementsByClassName("navbar_item")).map((it) => it.children[0]);
-    var current_category = navbar_items.find((it) => pathname_from(it.href) == pathname_from(location.href));
+    navbar_items
+        .sort((a, b) => prefix(b.pathname) - prefix(a.pathname));
+    var current_category = navbar_items[0];
     current_category.textContent = "> " + current_category.textContent + " <"
     current_category.style.fontWeight = "bold";
 }
+
 function navbarClick(event) {
     var target_is_tooltip = document.getElementsByClassName("tooltiptext")[0] === event.target;
     if (event.target !== this) { if (!target_is_tooltip) { return } }

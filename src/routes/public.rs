@@ -11,23 +11,23 @@ use sqlx::PgPool;
 
 #[get("/about", rank = 2)]
 pub async fn index(pool: &State<PgPool>) -> Result<Markup, Status> {
-    get_info("about", &*pool)
+    get_info("about", pool)
         .await
         .map(|about| page("hjvt::about", super::parse_markdown(&about)))
-        .map_err(|e| error(e))
+        .map_err(error)
 }
 
 #[get("/contacts", rank = 2)]
 pub async fn contacts(pool: &State<PgPool>) -> Result<Markup, Status> {
-    get_info("contacts", &*pool)
+    get_info("contacts", pool)
         .await
         .map(|about| page("hjvt::contacts", super::parse_markdown(&about)))
-        .map_err(|e| error(e))
+        .map_err(error)
 }
 
 #[get("/posts/<id>", rank = 2)]
 pub async fn post(id: i32, pool: &State<PgPool>) -> Option<Markup> {
-    match BlogPost::get(id, true, &*pool).await {
+    match BlogPost::get(id, true, pool).await {
         Ok(post) => Some(page(
             &format!("hjvt::blog::{}", post.title),
             super::parse_markdown(&post.body),
@@ -38,7 +38,7 @@ pub async fn post(id: i32, pool: &State<PgPool>) -> Option<Markup> {
 
 #[get("/posts", rank = 2)]
 pub async fn posts(pool: &State<PgPool>) -> Result<Markup, Status> {
-    match BlogPost::all_published(&*pool).await {
+    match BlogPost::all_published(pool).await {
         Ok(blogs) => Ok(page(
             "hjvt::blog",
             html! {

@@ -1,11 +1,13 @@
 use std::{future::Future, pin::Pin};
 
-use hmac::{Hmac, NewMac};
+use hmac::{Hmac, Mac};
 use rocket::{
     fairing::{self, Fairing, Info, Kind},
-    Build, Rocket,
+    request::FromRequest,
+    Build, Request, Response, Rocket, State,
 };
 use sha2::Sha256;
+use sqlx::PgPool;
 
 pub(crate) struct DbManager;
 
@@ -92,5 +94,58 @@ impl Secrets {
     }
     pub fn admin_password(&self) -> &str {
         &self.admin_password
+    }
+}
+
+pub struct HitCount;
+
+impl Fairing for HitCount {
+    fn info(&self) -> Info {
+        Info {
+            name: "HitCount",
+            kind: Kind::Response,
+        }
+    }
+
+    #[allow(
+        clippy::let_unit_value,
+        clippy::type_complexity,
+        clippy::type_repetition_in_bounds,
+        clippy::used_underscore_binding
+    )]
+    fn on_response<'r, 'life0, 'life1, 'life2, 'async_trait>(
+        &'life0 self,
+        req: &'r Request<'life1>,
+        res: &'life2 mut Response<'r>,
+    ) -> ::core::pin::Pin<
+        Box<dyn ::core::future::Future<Output = ()> + ::core::marker::Send + 'async_trait>,
+    >
+    where
+        'r: 'async_trait,
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+        Self: 'async_trait,
+    {
+        Box::pin(async move {
+            let ip = req.client_ip().map(sqlx::types::ipnetwork::IpNetwork::from);
+            let page = req.uri().path();
+            if let Some("static") = page.segments().next() {
+                return;
+            }
+            let status = res.status().code as i32;
+            let db = <&State<PgPool>>::from_request(req)
+                .await
+                .succeeded()
+                .unwrap();
+            _ = sqlx::query!(
+                "INSERT INTO page_hits VALUES ($1, $2, $3)",
+                ip,
+                page.to_string(),
+                status
+            )
+            .execute(&**db)
+            .await;
+        })
     }
 }

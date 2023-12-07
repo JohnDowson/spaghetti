@@ -7,16 +7,23 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = {version = "0.5.0-rc.1", features=["secrets"]}
-pulldown-cmark = "0.8"
+rocket = { version = "0.5", features = ["secrets"] }
+pulldown-cmark = "0.9"
 ammonia = "3.1"
-sqlx = { version = "0.5", features = ["postgres", "migrate", "macros", "runtime-tokio-rustls", "chrono"] }
+sqlx = { version = "0.7", features = [
+    "postgres",
+    "migrate",
+    "macros",
+    "runtime-tokio-rustls",
+    "chrono",
+    "ipnetwork",
+] }
 tokio = { version = "1.12", features = ["full"] }
 maud = { path = "./maud/maud", features = ["rocket"] }
-chrono = "0.4.19"
-log = "0.4.14"
-jwt = "0.15.0"
-hmac = "0.11.0"
+chrono = "0.4"
+log = "0.4"
+jwt = "0.16"
+hmac = "0.12"
 serde = "1.0.130"
-sha2 = "0.9.8"
-bcrypt = "0.10.1"
+sha2 = "0.10"
+bcrypt = "0.15"

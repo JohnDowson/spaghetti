@@ -18,6 +18,7 @@ async fn rocket() -> rocket::Rocket<rocket::Build> {
     rocket
         .attach(fairings::DbManager)
         .attach(fairings::SecretManager)
+        .attach(fairings::HitCount)
         .mount(
             "/",
             routes![
@@ -40,9 +41,11 @@ async fn rocket() -> rocket::Rocket<rocket::Build> {
                 routes::admin::logout,
                 routes::admin::submit_info,
                 routes::admin::new_info,
+                routes::admin::page_hits,
             ],
         )
         .mount("/static", rocket::fs::FileServer::from("./static"))
+        .mount("/pcmg", rocket::fs::FileServer::from("./pcmg"))
         .register(
             "/",
             catchers![

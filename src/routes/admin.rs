@@ -1,9 +1,11 @@
+use std::collections::{BTreeMap, HashMap};
+
 use super::public;
 use crate::models::{get_info, list_info_kinds, set_info, BlogForm, BlogPost};
 use crate::routes::error;
 use crate::{templates::*, Secrets, Session};
 
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{NaiveDateTime, TimeZone, Utc};
 use jwt::VerifyWithKey;
 use maud::{html, Markup};
 
@@ -26,7 +28,8 @@ impl<'r> FromRequest<'r> for Admin {
         let secret = req.rocket().state::<Secrets>().unwrap();
         let valid = |k: &Cookie| -> bool {
             let claims: Session = k.value().verify_with_key(secret.secret_key()).unwrap();
-            let exp = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(claims.exp, 0), Utc);
+            let exp =
+                Utc.from_utc_datetime(&NaiveDateTime::from_timestamp_opt(claims.exp, 0).unwrap());
             let now = Utc::now();
             let expired = exp < now;
             log::info!("Now:{}, exp: {}", now, exp);
@@ -35,7 +38,7 @@ impl<'r> FromRequest<'r> for Admin {
 
         match req.cookies().get_private("session") {
             Some(key) if valid(&key) => Outcome::Success(Admin),
-            _ => Outcome::Forward(()),
+            _ => Outcome::Forward(Status::Forbidden),
         }
     }
 }
@@ -47,25 +50,25 @@ impl<'r> FromRequest<'r> for RevokeSession {
     type Error = ();
 
     async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-        req.cookies().remove_private(Cookie::named("session"));
+        req.cookies().remove_private(Cookie::from("session"));
         Outcome::Success(RevokeSession)
     }
 }
 
 #[get("/about")]
 pub async fn index(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
-    get_info("about", &*pool)
+    get_info("about", pool)
         .await
         .map(|about| admin_page("hjvt::about", super::parse_markdown(&about)))
-        .map_err(|e| error(e))
+        .map_err(error)
 }
 
 #[get("/contacts")]
 pub async fn contacts(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
-    get_info("contacts", &*pool)
+    get_info("contacts", pool)
         .await
         .map(|about| admin_page("hjvt::contacts", super::parse_markdown(&about)))
-        .map_err(|e| error(e))
+        .map_err(error)
 }
 
 #[get("/logout")]
@@ -75,7 +78,7 @@ pub async fn logout(_revoke: RevokeSession) -> Redirect {
 
 #[get("/posts/<id>")]
 pub async fn post(id: i32, _admin: Admin, pool: &State<PgPool>) -> Option<Markup> {
-    match BlogPost::get(id, false, &*pool).await {
+    match BlogPost::get(id, false, pool).await {
         Ok(post) => Some(admin_page(
             &format!("hjvt::blog::{}", post.title),
             super::parse_markdown(&post.body),
@@ -91,7 +94,7 @@ pub async fn submit(
     pool: &State<PgPool>,
 ) -> Result<Redirect, Status> {
     let nb = BlogPost::from_form(blog.into_inner(), false);
-    match nb.commit(&*pool).await {
+    match nb.commit(pool).await {
         Ok(id) => Ok(Redirect::to(uri!(public::post(id)))),
         Err(e) => Err(error(e)),
     }
@@ -102,13 +105,39 @@ pub async fn new(_admin: Admin) -> Markup {
     admin_page("hjvt::blog::new", post_editor("/posts/submit"))
 }
 
+#[get("/admin/page_hits")]
+pub async fn page_hits(_admin: Admin, db: &State<PgPool>) -> Markup {
+    let counts = sqlx::query!(
+        r#"SELECT
+            page,
+            count(*) AS "count!",
+            cast(extract(hour from created_at) AS integer) AS "hour_of_day!"
+        FROM page_hits
+        WHERE page_hits.status = 200
+    GROUP BY "hour_of_day!", page
+    ORDER BY "hour_of_day!"
+    "#
+    )
+    .fetch_all(&**db)
+    .await
+    .unwrap()
+    .into_iter()
+    .map(|r| (r.hour_of_day, (r.page, r.count)));
+    let mut counts_map: BTreeMap<i32, BTreeMap<String, i64>> = BTreeMap::default();
+    for (hour, (page, count)) in counts {
+        counts_map.entry(hour).or_default().insert(page, count);
+    }
+
+    admin_page("hjvt::admin::page_hits", page_counts(counts_map))
+}
+
 #[post("/admin/info", data = "<info>")]
 pub async fn submit_info(
     info: Form<BlogForm>,
     _admin: Admin,
     pool: &State<PgPool>,
 ) -> Result<Redirect, Status> {
-    match set_info(&info.body, &info.title, &*pool).await {
+    match set_info(&info.body, &info.title, pool).await {
         Ok(_) => Ok(Redirect::to("/admin/info/new")),
         Err(e) => Err(error(e)),
     }
@@ -116,7 +145,7 @@ pub async fn submit_info(
 
 #[get("/admin/info/new")]
 pub async fn new_info(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
-    let info_kinds = list_info_kinds(&*pool).await.map_err(error)?;
+    let info_kinds = list_info_kinds(pool).await.map_err(error)?;
     Ok(admin_page("THE_BACKROOMS::boo", info_editor(&info_kinds)))
 }
 
@@ -125,7 +154,7 @@ pub async fn delete_post(id: i32, _admin: Admin, pool: &State<PgPool>) -> Result
     BlogPost::delete(id, pool)
         .await
         .map(|_| Redirect::to(uri!(posts)))
-        .map_err(|e| error(e))
+        .map_err(error)
 }
 
 #[post("/posts/<id>/publish")]
@@ -138,7 +167,7 @@ pub async fn publish(id: i32, _admin: Admin, pool: &State<PgPool>) -> Result<Sta
 
 #[get("/posts", rank = 1)]
 pub async fn posts(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
-    match BlogPost::all(&*pool).await {
+    match BlogPost::all(pool).await {
         Ok(blogs) => Ok(admin_page(
             "hjvt::blog",
             html! {
