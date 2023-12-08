@@ -19,6 +19,7 @@ ENV PATH=/root/.cargo/bin:$PATH
 RUN USER=root cargo new --bin spaghetti
 WORKDIR /spaghetti
 COPY ./maud ./maud
+COPY ./extrusion-dies ./extrusion-dies
 COPY ./Cargo.toml ./Cargo.toml
 COPY ./Cargo.lock ./Cargo.lock
 RUN cargo build --release

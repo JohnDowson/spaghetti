@@ -1,7 +1,6 @@
 mod fairings;
 mod models;
 mod routes;
-mod templates;
 pub use fairings::Secrets;
 use rocket::{catchers, launch, routes};
 #[derive(serde::Serialize, serde::Deserialize, Debug)]

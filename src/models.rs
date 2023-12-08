@@ -50,7 +50,7 @@ pub async fn set_info(entry: &str, name: &str, pool: &PgPool) -> Result<(), Box<
         "INSERT INTO info (entry, name) VALUES ($1, $2)
         ON CONFLICT (name) DO
         UPDATE SET entry = EXCLUDED.entry",
-        ammonia::clean(&entry),
+        entry,
         name
     )
     .execute(pool)
@@ -68,7 +68,7 @@ impl BlogPost {
             id: -1,
             created_at: NaiveDateTime::from_timestamp_opt(0, 0).unwrap(),
             title,
-            body: ammonia::clean(&body),
+            body,
             published: publish,
             views: 0,
         }

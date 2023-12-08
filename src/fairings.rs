@@ -129,10 +129,11 @@ impl Fairing for HitCount {
     {
         Box::pin(async move {
             let ip = req.client_ip().map(sqlx::types::ipnetwork::IpNetwork::from);
-            let page = req.uri().path();
-            if let Some("static") = page.segments().next() {
+            let path = req.uri().path();
+            if let Some("static" | "admin") = path.segments().next() {
                 return;
             }
+
             let status = res.status().code as i32;
             let db = <&State<PgPool>>::from_request(req)
                 .await
@@ -141,7 +142,7 @@ impl Fairing for HitCount {
             _ = sqlx::query!(
                 "INSERT INTO page_hits VALUES ($1, $2, $3)",
                 ip,
-                page.to_string(),
+                path.to_string(),
                 status
             )
             .execute(&**db)

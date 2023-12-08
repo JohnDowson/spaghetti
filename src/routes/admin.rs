@@ -1,11 +1,12 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 use super::public;
 use crate::models::{get_info, list_info_kinds, set_info, BlogForm, BlogPost};
 use crate::routes::error;
-use crate::{templates::*, Secrets, Session};
+use crate::{Secrets, Session};
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
+use extrusion_dies::templates::*;
 use jwt::VerifyWithKey;
 use maud::{html, Markup};
 
@@ -16,6 +17,17 @@ use rocket::Request;
 
 use rocket::{delete, form::Form, get, http::Status, post, uri, State};
 use sqlx::PgPool;
+
+static NAVBAR: &[(&str, &str); 8] = &[
+    ("About", "/about"),
+    ("Contacts", "/contacts"),
+    ("Blog", "/posts/"),
+    ("New", "/posts/new"),
+    ("Edit info", "/admin/info/new"),
+    ("Github", "https://github.com/JohnDowson"),
+    ("Page hits", "/admin/page_hits"),
+    ("Logout", "/logout"),
+];
 
 #[derive(Debug)]
 pub struct Admin;
@@ -59,7 +71,7 @@ impl<'r> FromRequest<'r> for RevokeSession {
 pub async fn index(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
     get_info("about", pool)
         .await
-        .map(|about| admin_page("hjvt::about", super::parse_markdown(&about)))
+        .map(|about| page("hjvt::about", NAVBAR, super::parse_markdown(&about)))
         .map_err(error)
 }
 
@@ -67,7 +79,7 @@ pub async fn index(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status
 pub async fn contacts(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
     get_info("contacts", pool)
         .await
-        .map(|about| admin_page("hjvt::contacts", super::parse_markdown(&about)))
+        .map(|about| page("hjvt::contacts", NAVBAR, super::parse_markdown(&about)))
         .map_err(error)
 }
 
@@ -79,8 +91,9 @@ pub async fn logout(_revoke: RevokeSession) -> Redirect {
 #[get("/posts/<id>")]
 pub async fn post(id: i32, _admin: Admin, pool: &State<PgPool>) -> Option<Markup> {
     match BlogPost::get(id, false, pool).await {
-        Ok(post) => Some(admin_page(
+        Ok(post) => Some(page(
             &format!("hjvt::blog::{}", post.title),
+            NAVBAR,
             super::parse_markdown(&post.body),
         )),
         Err(_) => None,
@@ -102,21 +115,22 @@ pub async fn submit(
 
 #[get("/posts/new")]
 pub async fn new(_admin: Admin) -> Markup {
-    admin_page("hjvt::blog::new", post_editor("/posts/submit"))
+    page("hjvt::blog::new", NAVBAR, post_editor("/posts/submit"))
 }
 
 #[get("/admin/page_hits")]
 pub async fn page_hits(_admin: Admin, db: &State<PgPool>) -> Markup {
     let counts = sqlx::query!(
-        r#"SELECT
+        r#"
+        SELECT
             page,
-            count(*) AS "count!",
+            count(1) AS "count!",
             cast(extract(hour from created_at) AS integer) AS "hour_of_day!"
         FROM page_hits
         WHERE page_hits.status = 200
-    GROUP BY "hour_of_day!", page
-    ORDER BY "hour_of_day!"
-    "#
+        GROUP BY "hour_of_day!", page
+        ORDER BY "hour_of_day!"
+        "#
     )
     .fetch_all(&**db)
     .await
@@ -128,7 +142,7 @@ pub async fn page_hits(_admin: Admin, db: &State<PgPool>) -> Markup {
         counts_map.entry(hour).or_default().insert(page, count);
     }
 
-    admin_page("hjvt::admin::page_hits", page_counts(counts_map))
+    page("hjvt::admin::page_hits", NAVBAR, page_counts(counts_map))
 }
 
 #[post("/admin/info", data = "<info>")]
@@ -146,7 +160,7 @@ pub async fn submit_info(
 #[get("/admin/info/new")]
 pub async fn new_info(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
     let info_kinds = list_info_kinds(pool).await.map_err(error)?;
-    Ok(admin_page("THE_BACKROOMS::boo", info_editor(&info_kinds)))
+    Ok(page("THE_BACKROOMS::boo", NAVBAR, info_editor(&info_kinds)))
 }
 
 #[delete("/posts/<id>")]
@@ -168,8 +182,9 @@ pub async fn publish(id: i32, _admin: Admin, pool: &State<PgPool>) -> Result<Sta
 #[get("/posts", rank = 1)]
 pub async fn posts(_admin: Admin, pool: &State<PgPool>) -> Result<Markup, Status> {
     match BlogPost::all(pool).await {
-        Ok(blogs) => Ok(admin_page(
+        Ok(blogs) => Ok(page(
             "hjvt::blog",
+            NAVBAR,
             html! {
                 table class="blogs" {
                 @for post in blogs {

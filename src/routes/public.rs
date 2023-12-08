@@ -1,7 +1,8 @@
 use crate::models::{get_info, BlogPost};
 use crate::routes::error;
-use crate::{templates::*, Secrets, Session};
+use crate::{Secrets, Session};
 use chrono::{Duration, Utc};
+use extrusion_dies::templates::*;
 use jwt::SignWithKey;
 use maud::{html, Markup};
 use rocket::http::{Cookie, CookieJar};
@@ -9,11 +10,18 @@ use rocket::response::Redirect;
 use rocket::{form::Form, get, http::Status, post, uri, FromForm, State};
 use sqlx::PgPool;
 
+static NAVBAR: &[(&str, &str)] = &[
+    ("About", "/about"),
+    ("Contacts", "/contacts"),
+    ("Blog", "/posts/"),
+    ("Github", "https://github.com/JohnDowson"),
+];
+
 #[get("/about", rank = 2)]
 pub async fn index(pool: &State<PgPool>) -> Result<Markup, Status> {
     get_info("about", pool)
         .await
-        .map(|about| page("hjvt::about", super::parse_markdown(&about)))
+        .map(|about| page("hjvt::about", NAVBAR, super::parse_markdown(&about)))
         .map_err(error)
 }
 
@@ -21,7 +29,7 @@ pub async fn index(pool: &State<PgPool>) -> Result<Markup, Status> {
 pub async fn contacts(pool: &State<PgPool>) -> Result<Markup, Status> {
     get_info("contacts", pool)
         .await
-        .map(|about| page("hjvt::contacts", super::parse_markdown(&about)))
+        .map(|about| page("hjvt::contacts", NAVBAR, super::parse_markdown(&about)))
         .map_err(error)
 }
 
@@ -30,6 +38,7 @@ pub async fn post(id: i32, pool: &State<PgPool>) -> Option<Markup> {
     match BlogPost::get(id, true, pool).await {
         Ok(post) => Some(page(
             &format!("hjvt::blog::{}", post.title),
+            NAVBAR,
             super::parse_markdown(&post.body),
         )),
         Err(_) => None,
@@ -41,6 +50,7 @@ pub async fn posts(pool: &State<PgPool>) -> Result<Markup, Status> {
     match BlogPost::all_published(pool).await {
         Ok(blogs) => Ok(page(
             "hjvt::blog",
+            NAVBAR,
             html! {
                 table class="blogs" {
                 @for post in blogs {
@@ -60,6 +70,7 @@ pub async fn posts(pool: &State<PgPool>) -> Result<Markup, Status> {
 pub fn login() -> Markup {
     page(
         "hjvt::login",
+        NAVBAR,
         html! {
             form action="/login" method="post" id="loginform" {
                 input type="password" name="password";
@@ -83,7 +94,7 @@ pub fn login_post(
     let token_str = claims.sign_with_key(secret.secret_key()).unwrap();
     if bcrypt::verify(&login.password, secret.admin_password()).map_err(|e| error(e.into()))? {
         cookies.add_private(Cookie::new("session", token_str));
-        Ok(Redirect::to(uri!("/admin")))
+        Ok(Redirect::to(uri!("/")))
     } else {
         Err(Status::Unauthorized)
     }

@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 use maud::{html, Markup, DOCTYPE};
 pub fn post_editor(form_action: &str) -> Markup {
@@ -48,37 +48,25 @@ pub fn info_editor(infos: &[impl AsRef<str>]) -> Markup {
     }
 }
 
-pub fn page(page_title: &str, content: Markup) -> Markup {
+pub fn page(
+    page_title: &str,
+    navbar_content: &[(&'static str, &'static str)],
+    content: Markup,
+) -> Markup {
     html! {
         (html_head(page_title))
-        div class="box" {
-        (navbar(&[
-            ("About", "/about"),
-            ("Contacts", "/contacts"),
-            ("Blog", "/posts/"),
-            ("Github", "https://github.com/JohnDowson"),
-        ]))
-        (body(content, page_title))
-        (footer())}
-    }
-}
-
-pub fn admin_page(page_title: &str, content: Markup) -> Markup {
-    html! {
-        (html_head(page_title))
-        div class="box" {
-        (navbar(&[
-            ("About", "/about"),
-            ("Contacts", "/contacts"),
-            ("Blog", "/posts/"),
-            ("New", "/posts/new"),
-            ("Edit info", "/admin/info/new"),
-            ("Github", "https://github.com/JohnDowson"),
-            ("Page hits","/admin/page_hits"),
-            ("Logout","/logout"),
-        ]))
-        (body(content, page_title))
-        (footer())}
+        .container {
+                .column.navbar {
+                    (navbar(navbar_content))
+                }
+                .column.content {
+                    header id="header" {
+                        h1 { (page_title) }
+                    }
+                    (content)
+                    (footer())
+                }
+        }
     }
 }
 
@@ -105,16 +93,7 @@ pub fn html_head(page_title: &str) -> Markup {
         script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" {}
     }
 }
-pub fn body(content: Markup, page_title: &str) -> Markup {
-    html! {
-        header id="header" {
-            h1 { (page_title) }
-        }
-        div class="content" {
-            (content)
-        }
-    }
-}
+
 pub fn footer() -> Markup {
     html! {
         footer {
@@ -124,12 +103,9 @@ pub fn footer() -> Markup {
 }
 pub fn navbar(items: &[(&str, &str)]) -> Markup {
     html! {
-        div id="navbar" class="navbar" onmouseover="navbarHover()" {
-            h2 {("hjvt::*")}
-            @for (item, link_to) in items {
-                (navbar_item(item, link_to))
-            }
-            span class="tooltiptext" {}
+        h2 {("hjvt::*")}
+        @for (item, link_to) in items {
+            (navbar_item(item, link_to))
         }
     }
 }
