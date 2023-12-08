@@ -1,3 +1,5 @@
 /target
 test.md
 db/*
+/static/css/*.css
+/static/css/*.map

@@ -31,7 +31,7 @@ header {
 }
 
 .navbar {
-  @media screen and (min-width: 80rem) {
+  @media screen and (min-width: 60rem) {
     height: 100%;
     width: 200px;
     position: fixed;
@@ -60,9 +60,12 @@ header {
   font-size: 13pt;
   text-indent: 20px;
 
-  @media screen and (min-width: 80rem) {
+  @media screen and (min-width: 60rem) {
     margin-left: 220px;
   }
+
+  margin-left: 20px;
+  margin-right: 20px;
 
   strong {
     font-weight: 500;
