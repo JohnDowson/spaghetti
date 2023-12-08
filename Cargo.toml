@@ -19,12 +19,12 @@ sqlx = { version = "0.7", features = [
     "chrono",
     "ipnetwork",
 ] }
-tokio = { version = "1.12", features = ["full"] }
+tokio = { version = "1.34", features = ["full"] }
 chrono = "0.4"
 log = "0.4"
 jwt = "0.16"
 hmac = "0.12"
-serde = "1.0.130"
+serde = "1.0.193"
 sha2 = "0.10"
 bcrypt = "0.15"
 maud = { path = "./maud/maud" }
