@@ -30,4 +30,4 @@ ENV DATABASE_URL=postgres://spaghetti@localhost/spaghetti-dev
 RUN rm src/*.rs
 COPY ./src ./src
 RUN rm ./target/release/deps/spaghetti*
-RUN cargo build --verbose --release
+RUN cargo build --release

@@ -85,6 +85,8 @@ pub fn html_head(page_title: &str) -> Markup {
         meta name="msapplication-config" content="/static/browserconfig.xml" {}
         meta name="theme-color" content="#007f46" {}
         // Favicon magic
+        meta name="viewport" content="width=device-width, initial-scale=1";
+        meta name="description" content=(format!("Ivan 'HJVT' Chinenov's blog: {page_title}"));
         meta charset="utf-8";
         title { (page_title) }
         link rel="stylesheet" type="text/css" href="/static/css/style.css" ;

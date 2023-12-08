@@ -14,7 +14,6 @@ header {
   font-family: 'Inconsolata', monospace !important;
   text-indent: 0 !important;
   text-align: center;
-  margin-left: 220px;
 }
 
 .row {
@@ -32,10 +31,13 @@ header {
 }
 
 .navbar {
-  height: 100%;
-  width: 200px;
+  @media screen and (min-width: 80rem) {
+    height: 100%;
+    width: 200px;
+    position: fixed;
+  }
+
   text-align: center;
-  position: fixed;
   top: 0;
   left: 0;
   background-color: #110704;
@@ -58,7 +60,9 @@ header {
   font-size: 13pt;
   text-indent: 20px;
 
-  margin-left: 220px;
+  @media screen and (min-width: 80rem) {
+    margin-left: 220px;
+  }
 
   strong {
     font-weight: 500;
